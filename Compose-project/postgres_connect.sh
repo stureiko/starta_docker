@@ -1,0 +1,1 @@
+docker exec -it my_postgres psql -U postgres -d my_new_database
