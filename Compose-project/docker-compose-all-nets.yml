@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: testdb
+    volumes:
+      - mysql-database:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+  
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: my_new_database
+    volumes:
+      - database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+
+  web:
+    build: 
+      context: .
+      dockerfile: app.Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "3256"
+    depends_on:
+      - mysql
+      - postgres
+    deploy:
+      replicas: 3
+    networks:
+      - backend
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+    ports:
+      - 8080:4000
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  mysql-database:
+  database:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
